@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ai-valorant-coach
+description: Helm Chart for the Enterprise AI Valorant Coach Backend Service.
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
