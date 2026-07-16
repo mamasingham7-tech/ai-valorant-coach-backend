@@ -16,7 +16,7 @@ from app.database.database import engine, get_db_session
 from app.modules.users.presentation.api.routes import router as users_router
 from app.modules.matches.presentation.api.routes import router as matches_router
 from app.modules.live_coaching.presentation.api.routes import router as live_coaching_router
-from app.modules.admin.presentation.api.routes import router as admin_router
+
 from app.modules.autonomous.presentation.api.routes import router as autonomous_router
 from app.modules.federation.presentation.api.routes import router as federation_router
 from app.modules.enterprise.presentation.api.routes import router as enterprise_router
@@ -79,7 +79,7 @@ app.add_middleware(
 app.include_router(users_router, prefix="/api/v1", tags=["Authentication & Profile"])
 app.include_router(matches_router, prefix="/api/v1", tags=["Matches & Telemetry"])
 app.include_router(live_coaching_router, prefix="/api/v1", tags=["Live Coaching & Real-time Platform"])
-app.include_router(admin_router, prefix="/api/v1", tags=["Admin & Enterprise Controls"])
+
 app.include_router(autonomous_router, prefix="/api/v1", tags=["Autonomous AI Coaching"])
 app.include_router(federation_router, prefix="/api/v1", tags=["Federated Learning & Platform Marketplace"])
 app.include_router(enterprise_router, prefix="/api/v1", tags=["Enterprise Platform & SaaS Portals"])
