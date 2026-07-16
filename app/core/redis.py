@@ -40,7 +40,7 @@ class RedisClient:
             try:
                 return self.client.get(key)
             except Exception as e:
-                logger.error("Redis connection error during GET", error=str(e))
+                logger.warning("Redis connection error during GET, falling back to memory", error=str(e))
         return self._fallback_store.get(key)
 
     def setex(self, key: str, seconds: int, value: str) -> None:
@@ -49,7 +49,7 @@ class RedisClient:
                 self.client.setex(key, seconds, value)
                 return
             except Exception as e:
-                logger.error("Redis connection error during SETEX", error=str(e))
+                logger.warning("Redis connection error during SETEX, falling back to memory", error=str(e))
         self._fallback_store[key] = value
 
     def delete(self, key: str) -> None:
@@ -58,7 +58,7 @@ class RedisClient:
                 self.client.delete(key)
                 return
             except Exception as e:
-                logger.error("Redis connection error during DELETE", error=str(e))
+                logger.warning("Redis connection error during DELETE, falling back to memory", error=str(e))
         self._fallback_store.pop(key, None)
 
 # Global Client Instance

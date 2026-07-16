@@ -35,14 +35,16 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             process_time = time.perf_counter() - start_time
             logger.info("Request completed", status_code=response.status_code, duration_ms=round(process_time * 1000, 2))
             
-            # Security Headers
+            # Security Headers - skip strict CSP for swagger docs
             response.headers["X-Request-ID"] = request_id
             response.headers["X-Correlation-ID"] = correlation_id
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
             response.headers["X-Content-Type-Options"] = "nosniff"
-            response.headers["X-Frame-Options"] = "DENY"
-            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-            response.headers["Content-Security-Policy"] = "default-src 'self'"
+            
+            if not request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
+                response.headers["X-Frame-Options"] = "DENY"
+                response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+                response.headers["Content-Security-Policy"] = "default-src 'self'"
             
             return response
             
@@ -50,6 +52,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             process_time = time.perf_counter() - start_time
             logger.exception("Request unhandled exception", duration_ms=round(process_time * 1000, 2), error=str(e))
             
+            if request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
+                raise e
+
             status_code = 500
             error_code = "INTERNAL_SERVER_ERROR"
             message = "An unexpected server error occurred."
@@ -107,6 +112,13 @@ def setup_exception_handlers(app: FastAPI):
 
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+        if request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
+            # Do not intercept HTTP exceptions for Swagger endpoints
+            from fastapi.responses import HTMLResponse, JSONResponse
+            if isinstance(exc.detail, dict):
+                return JSONResponse(status_code=exc.status_code, content=exc.detail)
+            return HTMLResponse(status_code=exc.status_code, content=str(exc.detail))
+
         request_id = getattr(request.state, "request_id", "")
         logger.warn("HTTP exception raised", status_code=exc.status_code, detail=exc.detail)
         return wrap_response(

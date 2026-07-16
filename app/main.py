@@ -47,8 +47,21 @@ app = FastAPI(
     title="AI Valorant Coach Backend",
     description="Scalable, Production-Ready Backend for AI-powered Valorant coaching, performance analysis, and insights.",
     version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
     lifespan=lifespan
 )
+
+@app.get("/", status_code=status.HTTP_200_OK, tags=["Monitoring"])
+async def root():
+    return {
+        "name": "AI Valorant Coach Backend",
+        "status": "online",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health/liveness"
+    }
 
 # Apply global middlewares
 app.add_middleware(RequestLoggingMiddleware)
@@ -56,7 +69,7 @@ setup_exception_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.29.2:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://aicoa.netlify.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -111,4 +124,5 @@ async def readiness_check(session: AsyncSession = Depends(get_db_session)):
                 "redis": "in-memory-fallback" if not redis_client.is_connected else "healthy",
             }
         }
+        
     )
